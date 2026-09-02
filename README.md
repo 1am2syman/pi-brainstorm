@@ -2,78 +2,71 @@
 
 A persistent, discussion-only brainstorm mode for [Pi](https://github.com/earendil-works/pi).
 
-`/brainstorm` toggles a guardrail that keeps the agent in chat mode: it can explore ideas, compare options, inspect existing material read-only, and explain with ASCII or Mermaid diagrams, but it does not implement or modify files. Implementation begins only after the user includes the exact token `/approved` in a normal message.
+`/brainstorm` toggles a real Pi runtime mode. While active, the package shows `● brainstorm` in the TUI footer, limits the agent to read-only tools, injects a narrated brainstorming style, and requires the exact inline token `/approved` before implementation.
 
 ```text
-regular -- /brainstorm [query] --> brainstorm (discussion only)
-regular <-- /brainstorm -------- brainstorm
-regular <-- message + /approved - brainstorm (then implement)
+regular -- /brainstorm [query] --> brainstorm (footer status + read-only)
+regular <-- /brainstorm -------- brainstorm (exit without implementation)
+regular <-- inline /approved ---- brainstorm (exit and implement)
 regular -- /approved -----------> regular (no special effect)
 ```
 
-## Features
+## Package shape
 
-- Persistent brainstorm state across conversation turns
-- `/brainstorm` toggle in Pi's TUI autocomplete
-- Discussion-only and read-only operation while active
-- Explicit `/approved` exit before implementation
-- Narrated natural-language explanations
-- ASCII or Mermaid visuals through the `show-me` skill
+```text
+pi-brainstorm/
+├── extensions/
+│   └── brainstorm.ts          # command, state, status, approval, enforcement
+└── skills/
+    └── brainstorm/
+        └── SKILL.md           # narrated response and visual style
+```
 
-## Requirements
+This remains a skill-driven capability, with a Pi extension providing the runtime guarantees that Markdown alone cannot provide.
 
-- Pi with skill and prompt-template support
-- Git
-- Node.js and `npx` for installing the `show-me` dependency
+## Install from npm
 
-## Human-driven installation
-
-Run these commands yourself:
+After `pi-brainstorm-mode` is published:
 
 ```bash
-git clone https://github.com/1am2syman/pi-brainstorm.git
-cd pi-brainstorm
-
-mkdir -p ~/.pi/agent/skills/brainstorm ~/.pi/agent/prompts
-cp skills/brainstorm/SKILL.md ~/.pi/agent/skills/brainstorm/SKILL.md
-cp prompts/brainstorm.md ~/.pi/agent/prompts/brainstorm.md
-
+pi install npm:pi-brainstorm-mode
 npx skills add humanlayer/skills -g --agent pi --skill show-me -y
 ```
 
-Restart Pi so `/brainstorm` appears in TUI autocomplete.
+Restart Pi or run `/reload`.
+
+The `show-me` dependency supplies the ASCII and Mermaid visualization guidance used during brainstorming.
+
+## Install from GitHub
+
+```bash
+pi install git:github.com/1am2syman/pi-brainstorm
+npx skills add humanlayer/skills -g --agent pi --skill show-me -y
+```
+
+Restart Pi or run `/reload`.
 
 ## Agent-driven installation
 
-Give your coding agent this instruction:
+Give a coding agent this instruction:
 
-> Install `pi-brainstorm` globally for Pi from `https://github.com/1am2syman/pi-brainstorm`. Clone the repository to a temporary directory, copy `skills/brainstorm/SKILL.md` to `~/.pi/agent/skills/brainstorm/SKILL.md`, and copy `prompts/brainstorm.md` to `~/.pi/agent/prompts/brainstorm.md`. Then run `npx skills add humanlayer/skills -g --agent pi --skill show-me -y`. Verify both files exist and tell me to restart Pi. Do not alter project repositories.
-
-The agent should use this equivalent sequence:
-
-```bash
-tmp_dir="$(mktemp -d)"
-git clone https://github.com/1am2syman/pi-brainstorm.git "$tmp_dir/pi-brainstorm"
-
-mkdir -p ~/.pi/agent/skills/brainstorm ~/.pi/agent/prompts
-cp "$tmp_dir/pi-brainstorm/skills/brainstorm/SKILL.md" ~/.pi/agent/skills/brainstorm/SKILL.md
-cp "$tmp_dir/pi-brainstorm/prompts/brainstorm.md" ~/.pi/agent/prompts/brainstorm.md
-
-npx skills add humanlayer/skills -g --agent pi --skill show-me -y
-rm -rf "$tmp_dir"
-```
-
-Restart Pi after installation.
+> Install the Pi package with `pi install npm:pi-brainstorm-mode`. Install its visual response dependency with `npx skills add humanlayer/skills -g --agent pi --skill show-me -y`. Then run `/reload` if Pi is already open. Verify that `/brainstorm` is registered and tell me that active mode appears as `● brainstorm` in the TUI footer.
 
 ## Usage
 
-Start brainstorm mode with a query:
+Start the mode, optionally with the first question:
 
 ```text
 /brainstorm How should we redesign the authentication flow?
 ```
 
-Continue the conversation normally. Requests such as “go ahead” or “implement it” remain discussion-only while the mode is active.
+While active:
+
+- the footer shows `● brainstorm`;
+- responses use narrated natural language;
+- substantive responses include an ASCII or Mermaid visual;
+- mutating tools are unavailable and independently blocked;
+- “go ahead” and “implement it” remain discussion-only.
 
 Exit without implementation by toggling again:
 
@@ -81,35 +74,55 @@ Exit without implementation by toggling again:
 /brainstorm
 ```
 
-Exit and authorize the agreed implementation by including `/approved` inside a normal message:
+Exit and authorize the agreed implementation by including `/approved` in a normal message:
 
 ```text
 Proceed with the approach we agreed on: /approved
 ```
 
-`/approved` is intentionally not a registered Pi command. Outside active brainstorm mode, it has no special meaning.
+`/approved` is deliberately not a registered slash command and does not appear in autocomplete. Outside active brainstorm mode, it has no special meaning.
 
-## Repository layout
+## State behavior
 
-```text
-pi-brainstorm/
-├── prompts/
-│   └── brainstorm.md
-└── skills/
-    └── brainstorm/
-        └── SKILL.md
+Mode state is recorded in the Pi session. Resuming that session restores both the read-only tool set and the footer indicator. New sessions begin in regular mode unless their own history contains an active brainstorm state.
+
+## Updating
+
+```bash
+pi update npm:pi-brainstorm-mode
 ```
 
-The prompt template provides the `/brainstorm` TUI command. The skill contains the persistent mode rules.
+To update the GitHub installation instead:
+
+```bash
+pi update git:github.com/1am2syman/pi-brainstorm
+```
 
 ## Uninstall
 
 ```bash
-rm -rf ~/.pi/agent/skills/brainstorm
-rm -f ~/.pi/agent/prompts/brainstorm.md
+pi remove npm:pi-brainstorm-mode
 ```
 
-Restart Pi afterward.
+If installed from GitHub:
+
+```bash
+pi remove git:github.com/1am2syman/pi-brainstorm
+```
+
+The separately installed `show-me` skill can remain available for other workflows.
+
+## Development
+
+```bash
+npm install
+npm run check
+npm pack --dry-run
+```
+
+## Security
+
+Pi extensions execute with the user's permissions. Review [`extensions/brainstorm.ts`](extensions/brainstorm.ts) before installation. The extension changes active tools, injects mode instructions, stores a small session-state entry, and renders a footer status; it does not run shell commands or make network requests.
 
 ## License
 

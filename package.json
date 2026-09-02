@@ -1,0 +1,53 @@
+{
+  "name": "pi-brainstorm-mode",
+  "version": "1.0.0",
+  "description": "Persistent discussion-only brainstorm mode with TUI status and explicit approval for Pi.",
+  "license": "MIT",
+  "author": "1am2syman",
+  "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/1am2syman/pi-brainstorm.git"
+  },
+  "homepage": "https://github.com/1am2syman/pi-brainstorm#readme",
+  "bugs": {
+    "url": "https://github.com/1am2syman/pi-brainstorm/issues"
+  },
+  "keywords": [
+    "pi-package",
+    "pi",
+    "brainstorm",
+    "discussion",
+    "read-only",
+    "tui"
+  ],
+  "files": [
+    "extensions",
+    "skills",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "check": "tsc --noEmit && node --import tsx --test test/*.test.ts"
+  },
+  "pi": {
+    "extensions": [
+      "./extensions"
+    ],
+    "skills": [
+      "./skills"
+    ]
+  },
+  "peerDependencies": {
+    "@earendil-works/pi-coding-agent": "*"
+  },
+  "devDependencies": {
+    "@earendil-works/pi-coding-agent": "^0.84.4",
+    "@types/node": "^24.0.0",
+    "tsx": "^4.20.0",
+    "typescript": "^5.9.0"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
