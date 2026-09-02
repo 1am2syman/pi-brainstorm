@@ -51,6 +51,13 @@ export function readOnlyTools(toolNames: string[]): string[] {
 	return toolNames.filter((name) => READ_ONLY_TOOLS.has(name));
 }
 
+export function withoutStaleBrainstormContext<T>(messages: T[]): T[] {
+	return messages.filter(
+		(message) =>
+			(message as { customType?: string }).customType !== "brainstorm-mode-context",
+	);
+}
+
 export default function brainstormExtension(pi: ExtensionAPI): void {
 	let enabled = false;
 	let toolsBeforeBrainstorm: string[] | undefined;
@@ -118,14 +125,14 @@ export default function brainstormExtension(pi: ExtensionAPI): void {
 		};
 	});
 
-	pi.on("before_agent_start", async () => {
+	pi.on("context", async (event) => ({
+		messages: withoutStaleBrainstormContext(event.messages),
+	}));
+
+	pi.on("before_agent_start", async (event) => {
 		if (!enabled) return;
 		return {
-			message: {
-				customType: "brainstorm-mode-context",
-				content: ACTIVE_MODE_INSTRUCTIONS,
-				display: false,
-			},
+			systemPrompt: `${event.systemPrompt}\n\n${ACTIVE_MODE_INSTRUCTIONS}`,
 		};
 	});
 
