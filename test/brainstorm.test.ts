@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import {
+	approvalMessage,
 	containsApprovalToken,
 	readOnlyTools,
 	removeApprovalToken,
@@ -18,6 +19,17 @@ test("removes approval token while preserving the request", () => {
 		removeApprovalToken("Proceed with the agreed design: /approved"),
 		"Proceed with the agreed design:",
 	);
+});
+
+test("approval transform carries an explicit exit signal", () => {
+	const bare = approvalMessage("/approved");
+	assert.match(bare, /^\[Brainstorm mode ended/);
+	assert.match(bare, /Implementation is authorized\./);
+	assert.match(bare, /implementation we agreed on/);
+
+	const withRequest = approvalMessage("Create the file now: /approved");
+	assert.match(withRequest, /^\[Brainstorm mode ended/);
+	assert.match(withRequest, /Create the file now:/);
 });
 
 test("keeps only allowlisted read-only tools", () => {

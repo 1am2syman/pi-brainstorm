@@ -35,6 +35,9 @@ You are in a persistent discussion-only mode.
 - Requests such as "go ahead" or "implement it" remain discussion-only. Explain that implementation requires the exact token /approved inside a normal user message.
 - Do not treat ordinary words such as "approved" as authorization.`;
 
+const APPROVAL_SIGNAL =
+	"[Brainstorm mode ended — /approved received. Implementation is authorized.]";
+
 interface PersistedState {
 	enabled?: boolean;
 }
@@ -49,6 +52,11 @@ export function removeApprovalToken(text: string): string {
 
 export function readOnlyTools(toolNames: string[]): string[] {
 	return toolNames.filter((name) => READ_ONLY_TOOLS.has(name));
+}
+
+export function approvalMessage(text: string): string {
+	const request = removeApprovalToken(text) || "Proceed with the implementation we agreed on.";
+	return `${APPROVAL_SIGNAL}\n\n${request}`;
 }
 
 export function withoutStaleBrainstormContext<T>(messages: T[]): T[] {
@@ -118,10 +126,9 @@ export default function brainstormExtension(pi: ExtensionAPI): void {
 
 		disable(ctx);
 		ctx.ui.notify("Approval received. Brainstorm mode disabled.", "info");
-		const text = removeApprovalToken(event.text);
 		return {
 			action: "transform",
-			text: text || "Proceed with the implementation we agreed on.",
+			text: approvalMessage(event.text),
 		};
 	});
 

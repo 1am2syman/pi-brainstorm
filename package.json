@@ -1,6 +1,6 @@
 {
   "name": "pi-brainstorm-mode",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Persistent discussion-only brainstorm mode with TUI status and explicit approval for Pi.",
   "license": "MIT",
   "author": "1am2syman",
